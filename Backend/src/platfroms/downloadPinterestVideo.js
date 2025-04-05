@@ -1,7 +1,9 @@
-import puppeteer from "puppeteer";
-import https from "https";
-import fs from "fs";
-import path from "path";
+import axios from 'axios';
+import * as cheerio from 'cheerio'; // Updated import statement
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import puppeteer from 'puppeteer';
 
 export const getPinterestVideoInfo = async (url) => {
   const browser = await puppeteer.launch({ headless: "new" });
@@ -22,65 +24,66 @@ export const getPinterestVideoInfo = async (url) => {
 
 export const downloadPinterestVideo = async (url, res) => {
   try {
-    const browser = await puppeteer.launch({ headless: "new" });
-    const page = await browser.newPage();
+    // Make a GET request to the Pinterest URL
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+      },
+    });
 
-    // Enable request interception to capture network traffic
-    await page.setRequestInterception(true);
+    // Load the HTML content into cheerio
+    const $ = cheerio.load(response.data);
 
-    // Variable to store the video URL
+    // Find the video URL in the HTML (search for video tag or specific script containing the video URL)
     let videoUrl = null;
 
-    // Intercept network responses and look for video URLs
-    page.on('response', async (response) => {
-      const responseUrl = response.url();
-      console.log('Response URL:', responseUrl);  // Log all response URLs for debugging
-
-      // Look for video file URLs
-      if (responseUrl.includes('.mp4') || responseUrl.includes('.mov')) {
-        videoUrl = responseUrl;
-      }
-    });
-
-    // Increase navigation timeout and change the waiting behavior
-    await page.goto(url, {
-      waitUntil: 'domcontentloaded',  // Wait for the DOM to be loaded
-      timeout: 60000  // Set timeout to 60 seconds
-    });
-
-    // Wait explicitly for the video element to load
-    await page.waitForSelector("video", { visible: true, timeout: 60000 });
-
-    // Check if we found a video URL
-    if (!videoUrl) {
-      console.error("Failed to retrieve valid video URL");
-      return res.status(500).json({ error: "Failed to retrieve valid video URL from network" });
+    // Look for a video tag with the src attribute
+    const videoElement = $('video');
+    if (videoElement.length > 0) {
+      videoUrl = videoElement.attr('src');
     }
 
-    console.log("Found video URL:", videoUrl);
+    // If video URL is not found, try to find it in the scripts (common in Pinterest)
+    if (!videoUrl) {
+      const scripts = $('script');
+      scripts.each((i, script) => {
+        const scriptContent = $(script).html();
+        const regex = /"videoUrl":"(https:\/\/.*?)"/; // Regex to capture the video URL
+        const match = regex.exec(scriptContent);
+        if (match && match[1]) {
+          videoUrl = match[1];
+        }
+      });
+    }
+
+    // If video URL is still not found
+    if (!videoUrl) {
+      console.error('Failed to retrieve valid video URL');
+      return res.status(500).json({ error: 'Failed to retrieve valid video URL' });
+    }
+
+    console.log('Found video URL:', videoUrl);
 
     // Define file path for saving the video
-    const filePath = path.resolve("downloads", "pinterest_video.mp4");
+    const filePath = path.resolve('downloads', 'pinterest_video.mp4');
     const file = fs.createWriteStream(filePath);
 
     // Download the video
     https.get(videoUrl, (response) => {
       response.pipe(file);
-      file.on("finish", () => {
+      file.on('finish', () => {
         file.close(() => {
-          res.download(filePath, "pinterest_video.mp4", () => fs.unlinkSync(filePath));
+          res.download(filePath, 'pinterest_video.mp4', () => fs.unlinkSync(filePath));
         });
       });
-    }).on("error", (err) => {
-      console.error("Download error:", err); // Log the error
-      fs.unlinkSync(filePath);  // Clean up the file
-      res.status(500).json({ error: "Video download failed" });
+    }).on('error', (err) => {
+      console.error('Download error:', err); // Log the error
+      fs.unlinkSync(filePath); // Clean up the file
+      res.status(500).json({ error: 'Video download failed' });
     });
-
-    await browser.close();
   } catch (err) {
-    console.error("Error in downloadPinterestVideo:", err);  // Log the error for debugging
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error in downloadPinterestVideo:', err); // Log the error
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
