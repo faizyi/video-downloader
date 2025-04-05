@@ -1,2 +1,3 @@
-2025/04/05-14:52:28.429 4880 Creating DB C:\Users\faiz5\OneDrive\Desktop\ReactJS Projects\Multi-Platform Downloader\Backend\user_data\Default\shared_proto_db since it was missing.
-2025/04/05-14:52:28.506 4880 Reusing MANIFEST C:\Users\faiz5\OneDrive\Desktop\ReactJS Projects\Multi-Platform Downloader\Backend\user_data\Default\shared_proto_db/MANIFEST-000001
+2025/04/05-15:09:04.365 50b8 Reusing MANIFEST C:\Users\faiz5\OneDrive\Desktop\ReactJS Projects\Multi-Platform Downloader\Backend\user_data\Default\shared_proto_db/MANIFEST-000001
+2025/04/05-15:09:04.390 50b8 Recovering log #3
+2025/04/05-15:09:04.391 50b8 Reusing old log C:\Users\faiz5\OneDrive\Desktop\ReactJS Projects\Multi-Platform Downloader\Backend\user_data\Default\shared_proto_db/000003.log 
