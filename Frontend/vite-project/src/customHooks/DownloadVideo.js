@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 
 export const DownloadVideoHook = () => {
   const [videoUrl, setVideoUrl] = useState('');
@@ -10,12 +11,12 @@ export const DownloadVideoHook = () => {
 
   const detectPlatform = (url) => {
     if (!url) return 'Unknown';
-    if (url.includes('youtube.com') || url.includes('youtu.be')) return 'YouTube';
-    if (url.includes('tiktok.com')) return 'TikTok';
+    // if (url.includes('youtube.com') || url.includes('youtu.be')) return 'YouTube';
+    // if (url.includes('tiktok.com')) return 'TikTok';
     if (url.includes('instagram.com')) return 'Instagram';
     if (url.includes('facebook.com')) return 'Facebook';
     if (url.includes('linkedin.com')) return 'LinkedIn';
-    if (url.includes('pin.it') || url.includes('pinterest.com')) return 'Pinterest';
+    // if (url.includes('pin.it') || url.includes('pinterest.com')) return 'Pinterest';
     return 'Unknown';
   };
 
@@ -29,7 +30,7 @@ export const DownloadVideoHook = () => {
     setPlatform(detectedPlatform);
 
     if (detectedPlatform === 'Unknown') {
-      setMessage('Unsupported platform. Supported: YouTube, TikTok, Instagram, Facebook, LinkedIn, Pinterest.');
+      setMessage('Unsupported platform. Supported: Instagram, Facebook, LinkedIn.');
       return;
     }
 
@@ -38,22 +39,16 @@ export const DownloadVideoHook = () => {
       setError(null);
       setMessage(`Fetching ${detectedPlatform} video info...`);
 
-      const response = await fetch('http://localhost:7001/download/info', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: videoUrl }),
+      const { data } = await axios.post('http://localhost:7001/download/info', {
+        url: videoUrl,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch video info');
-      }
-
-      const data = await response.json();
       setInfo(data);
       setMessage(`${detectedPlatform} video info loaded`);
     } catch (err) {
-      setError(err.message);
-      setMessage(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.error || err.message;
+      setError(errorMsg);
+      setMessage(`Error: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -67,17 +62,13 @@ export const DownloadVideoHook = () => {
       setError(null);
       setMessage(`Starting ${platform} download...`);
 
-      const response = await fetch('http://localhost:7001/download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: videoUrl }),
-      });
+      const response = await axios.post(
+        'http://localhost:7001/download',
+        { url: videoUrl },
+        { responseType: 'blob' }
+      );
 
-      if (!response.ok) {
-        throw new Error('Failed to download video');
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'video/mp4' });
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -88,8 +79,9 @@ export const DownloadVideoHook = () => {
 
       setMessage('Download started!');
     } catch (err) {
-      setError(err.message);
-      setMessage(`Error: ${err.message}`);
+      const errorMsg = err.response?.data?.error || err.message;
+      setError(errorMsg);
+      setMessage(`Error: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
