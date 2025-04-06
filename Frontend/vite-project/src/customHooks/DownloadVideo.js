@@ -39,7 +39,7 @@ export const DownloadVideoHook = () => {
       setError(null);
       setMessage(`Fetching ${detectedPlatform} video info...`);
 
-      const { data } = await axios.post('http://localhost:7001/download/info', {
+      const { data } = await axios.post('https://video-downloader-server-production.up.railway.app/download/info', {
         url: videoUrl,
       });
 
