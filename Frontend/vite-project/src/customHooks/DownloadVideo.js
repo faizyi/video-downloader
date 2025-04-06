@@ -63,7 +63,7 @@ export const DownloadVideoHook = () => {
       setMessage(`Starting ${platform} download...`);
 
       const response = await axios.post(
-        'http://localhost:7001/download',
+        'https://video-downloader-server-production.up.railway.app/download',
         { url: videoUrl },
         { responseType: 'blob' }
       );
