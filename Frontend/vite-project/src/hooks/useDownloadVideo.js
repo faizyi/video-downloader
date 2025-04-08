@@ -1,45 +1,40 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-export const DownloadVideoHook = () => {
+export const useDownloadVideo = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [message, setMessage] = useState('');
   const [platform, setPlatform] = useState('');
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [progress, setProgress] = useState(0);
 
   const detectPlatform = (url) => {
-    if (!url) return 'Unknown';
-    // if (url.includes('youtube.com') || url.includes('youtu.be')) return 'YouTube';
-    // if (url.includes('tiktok.com')) return 'TikTok';
     if (url.includes('instagram.com')) return 'Instagram';
     if (url.includes('facebook.com')) return 'Facebook';
     if (url.includes('linkedin.com')) return 'LinkedIn';
-    // if (url.includes('pin.it') || url.includes('pinterest.com')) return 'Pinterest';
     return 'Unknown';
   };
 
   const fetchVideoInfo = async () => {
-    if (!videoUrl) {
-      setMessage('Please enter a video URL');
-      return;
-    }
+    setError(null);
+    setMessage('');
+    setInfo(null);
 
     const detectedPlatform = detectPlatform(videoUrl);
     setPlatform(detectedPlatform);
 
     if (detectedPlatform === 'Unknown') {
-      setMessage('Unsupported platform. Supported: Instagram, Facebook, LinkedIn.');
+      setError('Unsupported platform. Supported: Instagram, Facebook, LinkedIn.');
       return;
     }
 
     try {
       setLoading(true);
-      setError(null);
       setMessage(`Fetching ${detectedPlatform} video info...`);
 
-      const { data } = await axios.post('https://video-downloader-server-production.up.railway.app/download/info', {
+      const { data } = await axios.post('http://localhost:7001/download/info', {
         url: videoUrl,
       });
 
@@ -48,7 +43,6 @@ export const DownloadVideoHook = () => {
     } catch (err) {
       const errorMsg = err.response?.data?.error || err.message;
       setError(errorMsg);
-      setMessage(`Error: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -59,13 +53,20 @@ export const DownloadVideoHook = () => {
 
     try {
       setLoading(true);
+      setProgress(0);
       setError(null);
-      setMessage(`Starting ${platform} download...`);
+      setMessage(`Downloading ${platform} video...`);
 
       const response = await axios.post(
-        'https://video-downloader-server-production.up.railway.app/download',
+        'http://localhost:7001/download',
         { url: videoUrl },
-        { responseType: 'blob' }
+        {
+          responseType: 'blob',
+          onDownloadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setProgress(percent);
+          },
+        }
       );
 
       const blob = new Blob([response.data], { type: 'video/mp4' });
@@ -81,9 +82,9 @@ export const DownloadVideoHook = () => {
     } catch (err) {
       const errorMsg = err.response?.data?.error || err.message;
       setError(errorMsg);
-      setMessage(`Error: ${errorMsg}`);
     } finally {
       setLoading(false);
+      setProgress(0);
     }
   };
 
@@ -96,6 +97,7 @@ export const DownloadVideoHook = () => {
     info,
     fetchVideoInfo,
     loading,
-    error
+    error,
+    progress
   };
 };

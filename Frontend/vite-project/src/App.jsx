@@ -1,64 +1,21 @@
-import './App.css';
-import { DownloadVideoHook } from './customHooks/DownloadVideo';
-import Yt from './services/yt';
+import "./App.css";
+import { Container} from '@mui/material';
+import { Header } from "./components/Header";
+import { Downloader } from "./components/Downloader";
 
 function App() {
-  const {
-    videoUrl,
-    setVideoUrl,
-    message,
-    platform,
-    handleDownload,
-    info,
-    fetchVideoInfo,
-    loading,
-    error
-  } = DownloadVideoHook();
-
   return (
-    <div className="app-container">
-      <h1>Multi-Platform Video Downloader</h1>
-
-      <div className="input-group">
-        <input
-          type="text"
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
-          placeholder="Enter video URL"
-          className="url-input"
-        />
-
-        <button
-          onClick={fetchVideoInfo}
-          disabled={loading || !videoUrl}
-          className="action-button"
-        >
-          {loading ? 'Loading...' : 'Get Info'}
-        </button>
-      </div>
-
-      {message && (
-        <p className={`message ${error ? 'error' : ''}`}>
-          {message}
-        </p>
-      )}
-
-      {info && (
-        <div className="video-info">
-          <h2>{info.title}</h2>
-          <img src={info.thumbnail} alt="Thumbnail" className="thumbnail" />
-          <p>Platform: {platform}</p>
-          <p>Duration: {Math.floor(info.duration / 60)}:{('0' + (info.duration % 60)).slice(-2)}</p>
-          <button
-            onClick={handleDownload}
-            disabled={loading}
-            className="download-button"
-          >
-            {loading ? 'Downloading...' : `Download ${platform} Video`}
-          </button>
-        </div>
-      )}
-    </div>
+    <>
+    {/* Header */}
+    <Header />
+    {/* Main Container */}
+    <Container maxWidth="md" className="py-10 flex flex-col items-center space-y-10">
+      {/* Downloader Box */}
+      <Downloader/>
+      {/* Description Section */}
+      {/* <Description/> */}
+      </Container>
+  </>
   );
 }
 
