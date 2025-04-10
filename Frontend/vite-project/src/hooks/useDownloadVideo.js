@@ -8,7 +8,9 @@ export const useDownloadVideo = () => {
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [progress, setProgress] = useState(0);
+  const [isFetchingInfo, setIsFetchingInfo] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false); // New state for download redirection
 
   const detectPlatform = (url) => {
     if (url.includes('instagram.com')) return 'Instagram';
@@ -33,11 +35,9 @@ export const useDownloadVideo = () => {
     try {
       setLoading(true);
       setMessage(`Fetching ${detectedPlatform} video info...`);
-
-      const { data } = await axios.post('http://localhost:7001/download/info', {
+      const { data } = await axios.post('https://video-downloader-server-production.up.railway.app/download/info', {
         url: videoUrl,
       });
-
       setInfo(data);
       setMessage(`${detectedPlatform} video info loaded`);
     } catch (err) {
@@ -48,56 +48,52 @@ export const useDownloadVideo = () => {
     }
   };
 
-  const handleDownload = async () => {
-    if (!videoUrl || !info) return;
+  const handleGetInfo = async () => {
+    setIsFetchingInfo(true);
+    setMessage("");
+    setOpenModal(false);
+    await fetchVideoInfo();
+    setIsFetchingInfo(false);
+    setOpenModal(true);
+  };
 
-    try {
-      setLoading(true);
-      setProgress(0);
-      setError(null);
-      setMessage(`Downloading ${platform} video...`);
+  const handleDownload = () => {
+    setIsDownloading(true); // Set downloading state to true
+    setMessage('You are redirecting...'); // Show redirecting message
 
-      const response = await axios.post(
-        'http://localhost:7001/download',
-        { url: videoUrl },
-        {
-          responseType: 'blob',
-          onDownloadProgress: (progressEvent) => {
-            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setProgress(percent);
-          },
-        }
-      );
+    const encodedUrl = encodeURIComponent(videoUrl);
+    const downloadUrl = `https://video-downloader-server-production.up.railway.app/download?url=${encodedUrl}`;
 
-      const blob = new Blob([response.data], { type: 'video/mp4' });
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `${info.title.replace(/[^\w\s]/gi, '')}.mp4`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `${info.title.replace(/[^\w\s]/gi, '')}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 
+    // Reset the downloading state and message after a short delay
+    // setIsDownloading(false);
+    setTimeout(() => {
       setMessage('Download started!');
-    } catch (err) {
-      const errorMsg = err.response?.data?.error || err.message;
-      setError(errorMsg);
-    } finally {
-      setLoading(false);
-      setProgress(0);
-    }
+    }, 2000); // Adjust the delay as needed (e.g., 2 seconds)
   };
 
   return {
     videoUrl,
     setVideoUrl,
     message,
+    setMessage,
     platform,
     handleDownload,
     info,
     fetchVideoInfo,
     loading,
     error,
-    progress
+    isFetchingInfo,
+    setIsFetchingInfo,
+    handleGetInfo,
+    openModal,
+    setOpenModal,
+    isDownloading, // Return the new state
   };
 };

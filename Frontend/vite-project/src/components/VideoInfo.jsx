@@ -1,22 +1,90 @@
-import { Button, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  Dialog,
+  DialogContent,
+  Typography,
+} from '@mui/material';
 
-const VideoInfo = ({ info, platform, handleDownload, loading }) => (
-  <div className="p-6 rounded-xl space-y-4 text-center">
-    <Typography variant="h5">{info.title}</Typography>
-    <img src={info.thumbnail} alt="Thumbnail" className="rounded-lg w-full h-[400px]" />
-    <Typography>Platform: {platform}</Typography>
-    <Typography>
-      Duration: {Math.floor(info.duration / 60)}:{('0' + (info.duration % 60)).slice(-2)}
-    </Typography>
-    <Button
-      variant="contained"
-      color="primary"
-      onClick={handleDownload}
-      disabled={loading}
-    >
-      {loading ? 'Downloading...' : `Download ${platform} Video`}
-    </Button>
-  </div>
-);
+export const VideoInfoDialog = ({
+  open,
+  onClose,
+  loading,
+  info,
+  onDownload,
+  isDownloading, // Already passed from useDownloadVideo
+}) => {
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogContent
+        sx={{
+          p: 0,
+          bgcolor: 'rgba(255,255,255,0.75)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: 4,
+          overflow: 'hidden',
+        }}
+      >
+        <Card
+          elevation={0}
+          sx={{
+            p: 3,
+            bgcolor: 'background.paper',
+            borderRadius: 0,
+            boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Typography variant="h5" fontWeight={600} gutterBottom>
+            {info?.title} Video
+          </Typography>
 
-export default VideoInfo;
+          {info ? (
+            <>
+              {info.thumbnail && (
+                <Box
+                  component="img"
+                  src={info.thumbnail}
+                  alt="Video Thumbnail"
+                  sx={{
+                    width: '100%',
+                    height: 540,
+                    objectFit: 'cover',
+                    borderRadius: 3,
+                    mb: 3,
+                  }}
+                />
+              )}
+              
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={onDownload}
+                disabled={loading || isDownloading}
+                sx={{
+                  mt: 1,
+                  borderRadius: 3,
+                  py: 1.5,
+                  fontWeight: 600,
+                  background: 'linear-gradient(135deg, #4B82F1, #6C63FF)',
+                  boxShadow: '0 4px 14px rgba(76, 85, 196, 0.4)',
+                  transition: '0.3s',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #3b70e2, #5a53e6)',
+                    boxShadow: '0 6px 18px rgba(76, 85, 196, 0.5)',
+                  },
+                }}
+              >
+                {isDownloading ? 'Redirecting...' : 'Download'}
+              </Button>
+            </>
+          ) : (
+            <Typography variant="body2" sx={{ textAlign: 'center', my: 3 }}>
+              No info available.
+            </Typography>
+          )}
+        </Card>
+      </DialogContent>
+    </Dialog>
+  );
+};
