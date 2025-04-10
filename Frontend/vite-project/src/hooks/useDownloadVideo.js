@@ -15,7 +15,7 @@ export const useDownloadVideo = () => {
   const detectPlatform = (url) => {
     if (url.includes('instagram.com')) return 'Instagram';
     if (url.includes('facebook.com')) return 'Facebook';
-    if (url.includes('linkedin.com')) return 'LinkedIn';
+    // if (url.includes('linkedin.com')) return 'LinkedIn';
     return 'Unknown';
   };
 
@@ -28,7 +28,7 @@ export const useDownloadVideo = () => {
     setPlatform(detectedPlatform);
 
     if (detectedPlatform === 'Unknown') {
-      setError('Unsupported platform. Supported: Instagram, Facebook, LinkedIn.');
+      setError('Unsupported platform. Supported: Instagram, Facebook');
       return;
     }
 

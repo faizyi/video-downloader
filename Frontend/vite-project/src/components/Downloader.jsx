@@ -9,6 +9,7 @@ import {
 import React, { useEffect } from 'react';
 import { useDownloadVideo } from '../hooks/useDownloadVideo';
 import { VideoInfoDialog } from './VideoInfo';
+import { Description } from './Description';
 
 export const Downloader = () => {
   const {
@@ -32,23 +33,36 @@ export const Downloader = () => {
   return (
     <Box sx={{
       width: '100%',
-      maxWidth: '52rem',
+      maxWidth: '30rem', // Smaller width
       mx: 'auto',
-      mt: 12,
-      p: 4,
+      mt: 5,
+      p: 3, // Less padding
       bgcolor: 'background.paper',
-      borderRadius: 4,
-      boxShadow: 3,
+      borderRadius: 2,
+      boxShadow: 2, // Softer shadow
     }}>
-      <Typography variant="h4" sx={{
+      <Typography variant="h5" sx={{
         textAlign: 'center',
-        mb: 4,
-        fontWeight: 600
+        mb: 3,
+        fontWeight: 500, // Reduced boldness
+        fontSize: '1.5rem' // Smaller title font size
       }}>
         Video Downloader
       </Typography>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+      <Typography variant="body2" sx={{
+        textAlign: 'center',
+        mb: 3,
+        color: 'text.secondary',
+        fontSize: '0.875rem', // Smaller text size
+      }}>
+        Download videos from popular platforms like Facebook and Instagram.
+      </Typography>
+
+      {/* Supported Platforms List */}
+      <Description/>
+
+      <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
         <TextField
           label="Enter Video URL"
           variant="outlined"
@@ -59,6 +73,12 @@ export const Downloader = () => {
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
               bgcolor: 'grey.50'
+            },
+            '& .MuiInputLabel-root': {
+              fontSize: '0.875rem', // Smaller label font size
+            },
+            '& .MuiInputBase-root': {
+              fontSize: '0.875rem', // Smaller input font size
             }
           }}
         />
@@ -66,7 +86,7 @@ export const Downloader = () => {
           variant="contained"
           disabled={!videoUrl || loading}
           onClick={handleGetInfo}
-          sx={{ borderRadius: 2, px: 3 }}
+          sx={{ borderRadius: 2, px: 2, fontSize: '0.875rem' }} // Smaller button size
         >
           {loading ? 'Loading...' : 'Get'}
         </Button>
@@ -74,7 +94,7 @@ export const Downloader = () => {
 
       {isFetchingInfo && (
         <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <CircularProgress />
+          <CircularProgress size={20} /> {/* Smaller CircularProgress size */}
         </Box>
       )}
 
@@ -82,14 +102,15 @@ export const Downloader = () => {
         <Typography sx={{
           color: error ? 'error.main' : 'primary.main',
           textAlign: 'center',
-          mb: 2
+          mb: 2,
+          fontSize: '0.875rem' // Smaller message font size
         }}>
           {message}
         </Typography>
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+        <Alert severity="error" sx={{ mb: 2, fontSize: '0.875rem' }}>{error}</Alert> 
       )}
 
       {/* Dialog component */}
